@@ -93,3 +93,53 @@ def afinimgDec(image, t, r, g, b):
 
     # Codifica utilizando los coeficientes inversos.
     return afinimg(image, tinv, -r*tinv, -g*tinv, -b*tinv)
+
+
+
+
+## Codificación de Vigenère
+# La codificación de Vigenère es una codificación simétrica que utiliza
+# una matriz como clave.
+
+# Importa el paquete itertools para trabajar con herramientas de la
+# programación funcional, que facilitan el tratamiento de listas.
+from itertools import cycle
+
+def vigenere(mensaje, matriz, clave):
+    
+    """Codifica un mensaje con la codificación de Vigenère usando
+    la matriz y la clave dadas.
+    """
+    
+    # Busca en la matriz la posición correspondiente al par de letras
+    def codificaletra(pair):
+        a,b = pair
+        c = matriz[0].index(a)
+        r = [fila[0] for fila in matriz].index(b)
+        return matriz[r][c]
+    
+    # Codificamos cada letra emparejada con la clave
+    cod = map(codificaletra, zip(mensaje,cycle(clave)))
+    
+    # La presentamos como una cadena en lugar de una lista
+    return ''.join(cod) 
+
+
+def vigenereDec(mensajecodificado, matriz, clave):
+
+    """Decodifica un mensaje con la codificación de Vigenère usando
+    la matriz y la clave dadas.
+    """
+
+    # Busca en la matriz la posición correspondiente al par de letras
+    def decodificaletra(pair):
+        c,b = pair
+        r = [fila[0] for fila in matriz].index(b)
+        d = matriz[r].index(c)
+        return matriz[0][d]
+    
+    # Decodificamos cada letra emparejada con la clave
+    decod = map(decodificaletra, zip(mensajecodificado,cycle(clave)))
+    
+    # La presentamos como cadena en lugar de una lista
+    return ''.join(decod)
