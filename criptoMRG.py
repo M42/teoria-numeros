@@ -17,6 +17,10 @@ from PIL import Image
 
 
 
+
+## PRÁCTICA 1
+# Criptografía
+
 ## Cifrado RSA
 # El cifrado RSA es un cifrado asimétrico usando resultados de teoría
 # de números elemental. Se basa en el Teorema de Euler que dice que:
@@ -143,3 +147,59 @@ def vigenereDec(mensajecodificado, matriz, clave):
     
     # La presentamos como cadena en lugar de una lista
     return ''.join(decod)
+
+
+
+
+# PRÁCTICA 2
+# Factorización y pseudoprimalidad
+
+def mpot(p, m):
+    """Calcula el mayor exponente con el que p divide a m.
+    La entrada debe ser un número positivo.
+    """
+    # Se comenta que en la práctica 10 será necesario que
+    # esta función use un número negativo.
+
+    exp = 0
+    while (m % p == 0):
+        exp = exp+1
+        m = m/p
+
+    return exp
+
+def abmod(x,n):
+    """Calcula el resto de la división de x por n con signo.  Devuelve el
+    representante de menor módulo, que será negativo en la mitad de
+    los casos.
+    """
+    
+    if x < n/2:
+        return x%n
+    return x%n - n
+
+def mayorpot(p,x):
+    """En el caso p=-1, devuelve 0 si x es no negativo y 1 si es negativo.
+    En otro caso, devuelve el exponente de la mayor potencia de p que
+    divide a x.
+
+    El valor de p debe ser -1 o positivo.
+    """
+
+    # Caso negativo
+    if p == -1:
+        if x >= 0: return 0
+        else: return 1
+
+    # Caso general
+    return mpot(p, x)
+
+def ssuma(a,b):
+    """Devuelve la suma componente a componente de ambas listas.
+    """
+    return [x+y for x,y in zip(a,b)]
+
+def parp(l):
+    """Cierto si todos los números de la lista son pares.
+    """
+    return all(x%2 == 0 for x in l)
