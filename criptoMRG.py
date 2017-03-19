@@ -174,9 +174,7 @@ def abmod(x,n):
     los casos.
     """
     
-    if x < n/2:
-        return x%n
-    return x%n - n
+    return x%n if x < n/2 else x%n - n
 
 def mayorpot(p,x):
     """En el caso p=-1, devuelve 0 si x es no negativo y 1 si es negativo.
@@ -186,20 +184,58 @@ def mayorpot(p,x):
     El valor de p debe ser -1 o positivo.
     """
 
-    # Caso negativo
-    if p == -1:
-        if x >= 0: return 0
-        else: return 1
-
-    # Caso general
+    if p == -1: return 1 if x < 0 else 0
     return mpot(p, x)
 
 def ssuma(a,b):
     """Devuelve la suma componente a componente de ambas listas.
+    En el caso de dos listas de distinta longitud, devuelve None.
     """
+    
+    # Comprueba que ambas listas tengan la misma longitud
+    if len(a) != len(b): return None
+
     return [x+y for x,y in zip(a,b)]
 
 def parp(l):
     """Cierto si todos los números de la lista son pares.
     """
     return all(x%2 == 0 for x in l)
+
+
+def bnumer(b, base, n):
+    """Comprueba si b es un B-base relativo a n con la
+    base dada.
+    """
+    # Calcula el módulo absoluto del cuadrado
+    a = abmod(b**2, n)
+    
+    # Factoriza el número usando sólo los números de
+    # la base. Caso especial en el -1.
+    for factor in base:
+        if factor != -1:
+            a = a / (factor ** mayorpot(factor,a))
+        else:
+            if a < 0: a = abs(a)
+    
+    # Devuelve si está completamente factorizado
+    return a == 1
+
+
+def vec_alfa(b, base, n):
+    """Comprueba si b es un B-base relativo a n con la
+    base dada y en caso de serlo, devuelve su vector alfa.
+    """
+    
+    if not bnumer(b, base, n): return None
+    
+    a = abmod(b**2,n)
+    return [mayorpot(factor,a) for factor in base]
+
+
+from itertools import combinations
+def suma(lista,k):
+    return map(lambda l: reduce(lambda x,y: ssuma(x,y),l), combinations(lista,k))
+    
+def aux(k,r):
+    return list(combinations(range(r),k))
