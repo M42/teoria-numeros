@@ -188,8 +188,8 @@ def mayorpot(p,x):
     return mpot(p, x)
 
 def ssuma(a,b):
-    """Devuelve la suma componente a componente de ambas listas.
-    En el caso de dos listas de distinta longitud, devuelve None.
+    """Devuelve la suma componente a componente de ambas listas. En el
+    caso de dos listas de distinta longitud, devuelve None.
     """
     
     # Comprueba que ambas listas tengan la misma longitud
@@ -216,15 +216,15 @@ def bnumer(b, base, n):
         if factor != -1:
             a = a / (factor ** mayorpot(factor,a))
         else:
-            if a < 0: a = abs(a)
+            a = abs(a)
     
     # Devuelve si está completamente factorizado
     return a == 1
 
 
 def vec_alfa(b, base, n):
-    """Comprueba si b es un B-base relativo a n con la
-    base dada y en caso de serlo, devuelve su vector alfa.
+    """Comprueba si b es un B-base relativo a n con la base dada y en caso
+    de serlo, devuelve su vector alfa.
     """
     
     if not bnumer(b, base, n): return None
@@ -239,3 +239,8 @@ def suma(lista,k):
     
 def aux(k,r):
     return list(combinations(range(r),k))
+
+def primerosNPrimos(n):
+    """Devuelve una lista con los primeros n números primos.
+    """
+    return [prime(i) for i in xrange(1,n)]
