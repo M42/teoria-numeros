@@ -158,9 +158,7 @@ def mpot(p, m):
     """Calcula el mayor exponente con el que p divide a m.
     La entrada debe ser un número positivo.
     """
-    # Se comenta que en la práctica 10 será necesario que
-    # esta función use un número negativo.
-
+    
     exp = 0
     while (m % p == 0):
         exp = exp+1
@@ -174,7 +172,7 @@ def abmod(x,n):
     los casos.
     """
     
-    return x%n if x < n/2 else x%n - n
+    return x%n if x%n < n/2 else x%n - n
 
 def mayorpot(p,x):
     """En el caso p=-1, devuelve 0 si x es no negativo y 1 si es negativo.
@@ -200,6 +198,7 @@ def ssuma(a,b):
 def parp(l):
     """Cierto si todos los números de la lista son pares.
     """
+    
     return all(x%2 == 0 for x in l)
 
 
@@ -213,10 +212,7 @@ def bnumer(b, base, n):
     # Factoriza el número usando sólo los números de
     # la base. Caso especial en el -1.
     for factor in base:
-        if factor != -1:
-            a = a / (factor ** mayorpot(factor,a))
-        else:
-            a = abs(a)
+        a = a / (factor ** mayorpot(factor,a))
     
     # Devuelve si está completamente factorizado
     return a == 1
