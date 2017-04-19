@@ -91,7 +91,7 @@ def cociente(a,b,d):
 
 
 def eqpell(n,d):
-    """Suponemos d<0.
+    """Resuelve la ecuación de Pell. Supone d<0.
     """
     # Si n no es cuadrado en módulo d, no puede existir solución a
     # la ecuación x^2 - dy^2 = n.
