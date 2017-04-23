@@ -90,14 +90,59 @@ def cociente(a,b,d):
     return simplify((a * bconjugado) * Rational(1,norma(b,d)))
 
 
-def eqpell(n,d):
-    """Resuelve la ecuación de Pell. Supone d<0.
+def pell(d):
+    """Resuelve la ecuación de Pell para n=1 y d>0.
     """
+    # Calcula la fracción continua y el numerador y denominador
+    # de la última fracción de los convergentes.
+    f = continued_fraction_periodic(0,1,d)
+    l = flatten(f)[:-1]
+    convergentes = continued_fraction_convergents(l)
+    ultimo = list(convergentes)[-1]
+    x0, y0 = ultimo.as_numer_denom()
+    
+    # Separa según la paridad de la lista de coeficientes
+    if (len(l) % 2 == 0):
+        return x0, y0
+    else:
+        return x0*x0+d*y0*y0, 2*x0*y0
+
+def generalpell(n,d):
+    """Resuelve la ecuación de Pell para d<0.
+    """
+
+    # Resuelve primero para el caso n=1.
+    r,s = pell(d)
+
+    # Marca las cotas donde buscará las soluciones.
+    cotainf = 0
+    cotasup = 0
+    if n > 0:
+        cotainf = 0
+        cotasup = sqrt(Rational(n*(r-1), 2*d))
+    elif n < 0:
+        cotainf = sqrt(Rational(-n,d))
+        cotasup = sqrt(Rational(-n*(r+1), 2*d))
+
+    # Encuentra las soluciones de la ecuación de Pell.
+    solucionespotenciales = ((sqrt(n+d*y**2), y) for y in xrange(cotainf,cotasup+1))
+    soluciones = [[(x,y),(x,-y),(-x,y),(-x,-y)] for (x,y) in solucionespotenciales if ask(Q.integer(x))]
+
+    return list(set([s for sol in soluciones for s in sol]))
+    
+def eqpell_neg(n,d):
+    """Resuelve la ecuación de Pell para d<0.
+    """
+    # Si n es negativo, como d también lo es, no puede existir
+    # solución a la ecuación
+    if n < 0:
+        return []
+    
     # Si n no es cuadrado en módulo d, no puede existir solución a
     # la ecuación x^2 - dy^2 = n.
     if not is_quad_residue(n,-d):
         return []
-
+    
     # Prueba todos los valores posibles de y, sabiendo que siempre
     # quedará por debajo de la cota y < sqrt(n/-d).
     cota = int(sqrt(n/-d))+1
@@ -107,6 +152,15 @@ def eqpell(n,d):
     # Devolvemos las soluciones sin repetición
     return list(set([s for sol in soluciones for s in sol]))
         
+def eqpell(n,d):
+    """Resuelve la ecuación de Pell. En el caso de que d sea positivo
+    sólo devolverá las soluciones generadoras.
+    """
+    if d <= 0:
+        return eqpell_neg(n,d)
+    else:
+        return generalpell(n,d)
+
 
 def connorma(n,d):
     """Calcula los elementos de O_{d} con norma n.
@@ -174,13 +228,15 @@ def factoriza(a,d):
     
     # Si no existen elementos de norma dada, prueba
     # con el entero primo de esa norma.
-    if len(connorma(factor, d)) != 0:
+    connormadada = connorma(factor, d) + connorma(-factor,d)
+    if len(connormadada) != 0:
         # Pero si existen elementos de norma dada, prueba con 
         # el primero de ellos que lo divida.
-        for factorpotencial in connorma(factor,d):
+        for factorpotencial in connormadada:
             factorpotencial = simplify(factorpotencial)
             if divide(a, factorpotencial, d):
                 factor = factorpotencial
+                break
         
     # Factoriza recursivamente
     dividido = simplify(cociente(a,factor,d))
