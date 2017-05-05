@@ -244,3 +244,11 @@ def factoriza(a,d):
         Counter({factor: 1}) + 
         Counter(factoriza(dividido, d))
     )
+
+
+def e(d):
+    if d % 4 == 1:
+        return Rational(1,2)+Rational(1,2)*sqrt(d) 
+    else:
+        return sqrt(d)
+
