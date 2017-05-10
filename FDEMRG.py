@@ -4,21 +4,30 @@
 from sympy import *
 from collections import Counter
 
+
 def libreDeCuadrados(n):
-    """Devuelve si el número dado es libre de cuadrados. Espera un entero
-    como entrada.
+    """Devuelve si el número entero dado es libre de cuadrados. Espera un
+    entero como entrada, devuelve un booleano.
     """
+
+    # Será libre de cuadrados si todos los factores de su
+    # factorización tienen exponente 1.
     return all(v == 1 for v in factorint(n).values())
 
 
 def norma(a, d):
-    """Devuelve la norma de un elemento de un cuerpo cuadrático.
+    """Devuelve la norma de un elemento de un cuerpo cuadrático. Toma
+    como entrada el elemento del cuerpo cuadrático y la d que define
+    el cuerpo cuadrático O(d). Devuelve un natural en la salida.
     """
     x,y = xy(a,d)
-    return simplify((x+y*sqrt(d)) * (x-y*sqrt(d)))
+    return simplify((x + y*sqrt(d)) * (x - y*sqrt(d)))
+
 
 def traza(a, d):
     """Devuelve la traza de un elemento de un cuerpo cuadrático.
+    La traza se define como la suma del elemento con su conjugado,
+    es decir, como el doble de su parte racional.
     """
     x,y = xy(a,d)
     return simplify(2*x)
@@ -32,9 +41,11 @@ def es_entero(a, d):
 
 
 def xy(a,d):
-    """Escribe las coordenadas del número del cuerpo algebraico
+    """
+    Escribe las coordenadas del número del cuerpo algebraico
     en parte racional y coeficiente del radical.
     """
+    
     # Elimina el caso entero, que da error al usar coeff.
     if ask(Q.integer(a)):
         return (a,0)
@@ -45,8 +56,10 @@ def xy(a,d):
     # Devuelve los coeficientes
     return (a.coeff(sqrt(d),0), a.coeff(sqrt(d)))
 
+
 def ab(u,d):
-    """Escribe las coordenadas de un entero algebraico en el cuerpo
+    """
+    Escribe las coordenadas de un entero algebraico en el cuerpo
     algebraico y en la base usual del cuerpo. La entrada debe ser un
     entero algebraico.
     """
@@ -91,8 +104,10 @@ def cociente(a,b,d):
 
 
 def pell(d):
-    """Resuelve la ecuación de Pell para n=1 y d>0.
     """
+    Resuelve la ecuación de Pell para n=1 y d>0.
+    """
+    
     # Calcula la fracción continua y el numerador y denominador
     # de la última fracción de los convergentes.
     f = continued_fraction_periodic(0,1,d)
@@ -106,6 +121,7 @@ def pell(d):
         return x0, y0
     else:
         return x0*x0+d*y0*y0, 2*x0*y0
+
 
 def generalpell(n,d):
     """Resuelve la ecuación de Pell para d<0.
@@ -129,7 +145,8 @@ def generalpell(n,d):
     soluciones = [[(x,y),(x,-y),(-x,y),(-x,-y)] for (x,y) in solucionespotenciales if ask(Q.integer(x))]
 
     return list(set([s for sol in soluciones for s in sol]))
-    
+
+
 def eqpell_neg(n,d):
     """Resuelve la ecuación de Pell para d<0.
     """
@@ -151,11 +168,16 @@ def eqpell_neg(n,d):
 
     # Devolvemos las soluciones sin repetición
     return list(set([s for sol in soluciones for s in sol]))
-        
+
+
 def eqpell(n,d):
     """Resuelve la ecuación de Pell. En el caso de que d sea positivo
     sólo devolverá las soluciones generadoras.
     """
+
+    if n == 1 and d > 0:
+        return pell(d)
+    
     if d <= 0:
         return eqpell_neg(n,d)
     else:
@@ -252,3 +274,11 @@ def e(d):
     else:
         return sqrt(d)
 
+
+def irreducible_e(d):
+    """
+    Devuelve el polinomio irreducible de e en la extensión
+    dada por O(d). Este polinomio irreducible tiene como
+    coeficientes la traza y la norma.
+    """
+    return [1, -traza(e(d)), norma(e(d))]
