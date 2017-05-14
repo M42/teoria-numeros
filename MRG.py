@@ -298,6 +298,7 @@ def irr_e(d):
             return x**2 - d
         return irr
 
+
 def irreducible_e(d):
     """
     Devuelve el polinomio irreducible de e en la extensión
@@ -392,8 +393,9 @@ def esO(ideal, d):
     ideal viene dado como lista de generadores.
     
     """
-    # Un ideal es el total si y sólo si tiene norma 1.
-    return normaIdeal(ideal, d) == 1
+    # Un ideal es de enteros sólo si todos sus generadores lo son.
+    # Un ideal de enteros es el total si y sólo si tiene norma 1.
+    return all([es_entero(e,d) for e in ideal]) and normaIdeal(ideal, d) == 1 
 
 
 def pertenece(u, ideal, d):
@@ -502,8 +504,6 @@ def factoriza_id(ideal, d):
           y seguimos trabajando con el cociente.
 
     """
-    print "Entra con norma: ", normaIdeal(ideal,d)
-    
     # Caso base: es el ideal total
     if esO(ideal,d):
         return {}
@@ -576,9 +576,19 @@ def cocienteIdealPrimo(I,u,d):
     #    prima.
     #
     assert( esprimo(u,d) )
+    assert( divideIdeal(I,u,d) )
+    
     if not isprime(normaIdeal(u,d)):
         p = u[0]
         return map(lambda i: i*Rational(1,p), I)
     else:
         p = normaIdeal(u,d)
-        return map(lambda i: i*Rational(1,p), productodos(I,u,d))
+        
+        # Calcula la otra raíz del polinomio para buscar el inverso
+        # por el que debe multiplicar para calcular el cociente.
+        irr = irr_e(d)
+        solucionesirr = [x for x in xrange(p) if irr(x)%p==0]
+        for s in solucionesirr:
+            a = [p, e(d)-s]
+            if esO(map(lambda i: i*Rational(1,p),productodos(a,u,d)), d):
+                return map(lambda i: i*Rational(1,p), productodos(I,a,d))
