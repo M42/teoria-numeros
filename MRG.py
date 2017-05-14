@@ -66,6 +66,8 @@ def ab(u,d):
     entero algebraico.
 
     """
+    assert(es_entero(u,d))
+    
     # Obtiene los coeficientes en parte radical y racional y los cambia
     # de base cuando es necesario, esto es, cuando d=1 mod 4.
     x,y = xy(u,d)
@@ -83,6 +85,9 @@ def divide(a,b,d):
     dado por d. Ambos números deben ser enteros algebraicos.
 
     """
+    assert( type(a) != list )
+    assert( type(b) != list )
+    
     # Comprueba si el resultado de dividir es un entero
     return es_entero(cociente(a,b,d), d)
 
@@ -506,6 +511,8 @@ def factoriza_id(ideal, d):
           y seguimos trabajando con el cociente.
 
     """
+    assert(type(ideal) == list)
+    
     # Caso base: es el ideal total
     if esO(ideal,d):
         return {}
