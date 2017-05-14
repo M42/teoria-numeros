@@ -8,26 +8,28 @@ from collections import Counter
 def libreDeCuadrados(n):
     """Devuelve si el número entero dado es libre de cuadrados. Espera un
     entero como entrada, devuelve un booleano.
-    """
 
+    """
     # Será libre de cuadrados si todos los factores de su
     # factorización tienen exponente 1.
     return all(v == 1 for v in factorint(n).values())
 
 
 def norma(a, d):
-    """Devuelve la norma de un elemento de un cuerpo cuadrático. Toma
-    como entrada el elemento del cuerpo cuadrático y la d que define
-    el cuerpo cuadrático O(d). Devuelve un natural en la salida.
+    """Devuelve la norma de un elemento de un cuerpo cuadrático. Toma como
+    entrada el elemento del cuerpo cuadrático y la d que define el
+    cuerpo cuadrático O(d). Devuelve un natural en la salida.
+
     """
     x,y = xy(a,d)
     return simplify((x + y*sqrt(d)) * (x - y*sqrt(d)))
 
 
 def traza(a, d):
-    """Devuelve la traza de un elemento de un cuerpo cuadrático.
-    La traza se define como la suma del elemento con su conjugado,
-    es decir, como el doble de su parte racional.
+    """Devuelve la traza de un elemento de un cuerpo cuadrático.  La traza
+    se define como la suma del elemento con su conjugado, es decir,
+    como el doble de su parte racional.
+
     """
     x,y = xy(a,d)
     return simplify(2*x)
@@ -36,14 +38,15 @@ def traza(a, d):
 def es_entero(a, d):
     """Devuelve si un número es entero algebraico en un cuerpo
     cuadrático. Comprueba que su norma y su traza lo sean.
+
     """
     return ask(Q.integer(norma(a, d))) and ask(Q.integer(traza(a, d)))
 
 
 def xy(a,d):
-    """
-    Escribe las coordenadas del número del cuerpo algebraico
-    en parte racional y coeficiente del radical.
+    """Escribe las coordenadas del número del cuerpo algebraico en parte
+    racional y coeficiente del radical.
+
     """
     
     # Elimina el caso entero, que da error al usar coeff.
@@ -58,12 +61,11 @@ def xy(a,d):
 
 
 def ab(u,d):
-    """
-    Escribe las coordenadas de un entero algebraico en el cuerpo
+    """Escribe las coordenadas de un entero algebraico en el cuerpo
     algebraico y en la base usual del cuerpo. La entrada debe ser un
     entero algebraico.
-    """
 
+    """
     # Obtiene los coeficientes en parte radical y racional y los cambia
     # de base cuando es necesario, esto es, cuando d=1 mod 4.
     x,y = xy(u,d)
@@ -79,17 +81,18 @@ def ab(u,d):
 def divide(a,b,d):
     """Devuelve si alfa es un múltiplo de beta en el anillo cuadrático
     dado por d. Ambos números deben ser enteros algebraicos.
-    """
 
+    """
     # Comprueba si el resultado de dividir es un entero
     return es_entero(cociente(a,b,d), d)
 
 
 def cociente(a,b,d):
     """Devuelve el cociente de la división de alfa por beta en el anillo
-    cuadrático dado por d. Ambos números deben ser enteros algebraicos.
+    cuadrático dado por d. Ambos números deben ser enteros
+    algebraicos.
+
     """
-    
     # Excepciones en el caso de que no sean enteros algebraicos
     if not es_entero(a,d):
         raise ArithmeticError("{} no es un entero".format(a))
@@ -104,10 +107,9 @@ def cociente(a,b,d):
 
 
 def pell(d):
+    """Resuelve la ecuación de Pell para n=1 y d>0.
+
     """
-    Resuelve la ecuación de Pell para n=1 y d>0.
-    """
-    
     # Calcula la fracción continua y el numerador y denominador
     # de la última fracción de los convergentes.
     f = continued_fraction_periodic(0,1,d)
@@ -125,11 +127,13 @@ def pell(d):
 
 def generalpell(n,d):
     """Resuelve la ecuación de Pell para d<0.
-    """
 
+    """
     # Resuelve primero para el caso n=1.
     r,s = pell(d)
-
+    if n == 1:
+        return [(r,s),(r,-s),(-r,s),(-r,-s)]
+    
     # Marca las cotas donde buscará las soluciones.
     cotainf = 0
     cotasup = 0
@@ -139,16 +143,20 @@ def generalpell(n,d):
     elif n < 0:
         cotainf = sqrt(Rational(-n,d))
         cotasup = sqrt(Rational(-n*(r+1), 2*d))
-
+    
     # Encuentra las soluciones de la ecuación de Pell.
     solucionespotenciales = ((sqrt(n+d*y**2), y) for y in xrange(cotainf,cotasup+1))
-    soluciones = [[(x,y),(x,-y),(-x,y),(-x,-y)] for (x,y) in solucionespotenciales if ask(Q.integer(x))]
-
+    soluciones = [
+        [(x,y),(x,-y),(-x,y),(-x,-y)]
+        for (x,y) in solucionespotenciales if ask(Q.integer(x))
+    ]
+    
     return list(set([s for sol in soluciones for s in sol]))
 
 
 def eqpell_neg(n,d):
     """Resuelve la ecuación de Pell para d<0.
+
     """
     # Si n es negativo, como d también lo es, no puede existir
     # solución a la ecuación
@@ -171,10 +179,10 @@ def eqpell_neg(n,d):
 
 
 def eqpell(n,d):
-    """Resuelve la ecuación de Pell. En el caso de que d sea positivo
-    sólo devolverá las soluciones generadoras.
-    """
+    """Resuelve la ecuación de Pell. En el caso de que d sea positivo sólo
+    devolverá las soluciones generadoras.
 
+    """
     if n == 1 and d > 0:
         return pell(d)
     
@@ -186,8 +194,8 @@ def eqpell(n,d):
 
 def connorma(n,d):
     """Calcula los elementos de O_{d} con norma n.
-    """
 
+    """
     if d % 4 != 1:
         # Caso 1: resolvemos la ecuación de Pell
         solucionespell = eqpell(n,d)
@@ -202,13 +210,13 @@ def connorma(n,d):
     
 def es_unidad(a,d):
     """Devuelve si a es una unidad en el anillo de enteros Q(sqrt(d)).
+
     """
-    
     # Retira el caso de que a no sea un entero y ni siquiera
     # esté en el anillo de enteros.
     if not es_entero(a,d):
         return False
-
+    
     # Un elemento es unidad si y sólo si tiene norma 1 ó -1.
     n = norma(a, d)
     return n == 1 or n == -1
@@ -216,6 +224,7 @@ def es_unidad(a,d):
 
 def es_irreducible(a,d):
     """Comprueba si un entero es irreducible.
+
     """
     # Excepción en el caso de que no sea un entero algebraico
     if not es_entero(a,d):
@@ -225,17 +234,22 @@ def es_irreducible(a,d):
     # o norma número primo al cuadrado y no existe ninǵun entero de
     # norma dicho número primo.
     n = norma(a,d)
-
     if isprime(n):
         return True
     
-    if ask(Q.integer(sqrt(n))) and isprime(sqrt(n)):
-        return len(connorma(sqrt(n),d)) == 0
-
+    # Comprueba si la raíz de un número es primo. Si lo es, intenta
+    # comprobar si ramifica buscando soluciones.
+    raiz = sqrt(n)
+    if ask(Q.integer(raiz)) and isprime(raiz):
+        return len(connorma(raiz,d) + connorma(-raiz,d)) == 0
+    
     return False
 
 
 def factoriza(a,d):
+    """Factoriza el elemento en el cuerpo O(d).
+
+    """
     # Caso base: es una unidad
     if es_unidad(a,d):
         return {}
@@ -307,7 +321,7 @@ def matrizrel(ideal, d):
     
     # Calcula los generadores del ideal como grupo abeliano y para cada
     # generador, calcula sus coordenadas en la base.
-    generadores = [x for par in map(lambda a: [a, expand(e(d)* a)], ideal) for x in par]
+    generadores = [x for par in map(lambda a: [a, expand(e(d)*a)], ideal) for x in par]
     return map(lambda a: list(ab(a,d)), generadores)
 
 
@@ -316,21 +330,20 @@ def LR(matriz):
     será la matriz equivalente triangular inferior.
 
     """
-    
     # Ordena la matriz por valor absoluto, dejando los ceros al final.
     matriz = sorted(matriz,
-                    key=lambda x: abs(x[0]) if x[0] != 0 else
-                    float("inf"))
+                    key=lambda x: abs(x[0]) if x[0] != 0 else float("inf"))
     
     # Si ha simplificado ya la primera fila, simplifica sólo la
     # segunda fila.
     if (len(matriz) < 2 or matriz[1][0] == 0):
+        matriz = [matriz[0]] + sorted(matriz[1:],
+                                      key=lambda x: abs(x[1]) if x[1] != 0 else float("inf"))
+        
         if (len(matriz) < 3 or matriz[2][1] == 0):
+            # Si ya ha simplificado segunda fila, ha terminado
             return matriz
         
-        matriz = [matriz[0]] + sorted(matriz[1:],
-                                      key=lambda x: abs(x[1]) if x[1] != 0 else
-                                      float("inf"))
         a = matriz[1][1]
         for i in range(2,len(matriz)):
             matriz[i][1] = matriz[i][1] % a
@@ -342,7 +355,7 @@ def LR(matriz):
     a = matriz[0][0]
     b = matriz[0][1]
     for i in range(1,len(matriz)):
-        coc = matriz[i][0] / a
+        coc = floor(matriz[i][0] / a)
         matriz[i][0] = matriz[i][0] - a * coc
         matriz[i][1] = matriz[i][1] - b * coc
     
@@ -371,9 +384,9 @@ def normaIdeal(ideal, d):
     # Reduce la matriz de relatores del ideal. La norma se obtiene
     # como el producto de la primera subdiagonal.
     reducida = LR(matrizrel(ideal, d))
-    return reducida[0][0] * reducida[1][1]
-    
-    
+    return abs(reducida[0][0] * reducida[1][1])
+
+
 def esO(ideal, d):
     """Comprueba si un ideal es el total. Esto es, si es igual a O. El
     ideal viene dado como lista de generadores.
@@ -407,7 +420,7 @@ def pertenece(u, ideal, d):
     if n % a == 0:
         x = n/a
     else:
-        return false
+        return False
     
     # Resolvemos y si es posible
     m = m - x * b
@@ -423,6 +436,7 @@ def divideIdeal(I, J, d):
     # contiene a otro si contiene a todos sus generadores.
     return all([pertenece(i,J,d) for i in I])
 
+
 def idealesDivisores(p,d):
     """Dado un número primo, busca los ideales irreducibles que lo
     dividen; es decir, que dividen al ideal generado por ese número
@@ -435,7 +449,7 @@ def idealesDivisores(p,d):
     irr = irr_e(d)
     solucionesirr = [x for x in xrange(p) if irr(x)%p==0]
     ramifica = (len(solucionesirr) != 0)
-
+    
     if ramifica:
         # Cuando ramifica, tenemos divisores dados por las soluciones
         # al polinomio característico.
@@ -450,7 +464,7 @@ def idealesDivisores(p,d):
 def productodos(I,J,d):
     """Calcula el producto de dos ideales. Ambos se introducen como
     listas de generadores. Devuelve una lista con dos generadores.
-    
+
     """
     # Puede calcularse el producto de dos ideales uniéndolos y
     # obteniendo su matriz reducida. Los generadores serán los que
@@ -458,12 +472,12 @@ def productodos(I,J,d):
     return simplificaIdeal([i*j for i in I for j in J],d)
 
 
-def producto(listaideales):
+def producto(listaideales,d):
     """Calcula el producto de una lista de ideales. Devuelve dos
     generadores del ideal producto.
 
     """
-    return reduce(productodos, listaideales, [(1,0),(0,1)])
+    return reduce(lambda x,y: productodos(x,y,d), listaideales, [1,e(d)])
 
 
 def factoriza_id(ideal, d):
@@ -488,6 +502,8 @@ def factoriza_id(ideal, d):
           y seguimos trabajando con el cociente.
 
     """
+    print "Entra con norma: ", normaIdeal(ideal,d)
+    
     # Caso base: es el ideal total
     if esO(ideal,d):
         return {}
@@ -539,9 +555,9 @@ def cocienteIdeal(I,J,d):
 
     """
     resultado = I
-    for k,v in factoriza_id(J).items():
+    for k,v in factoriza_id(J,d).items():
         for x in xrange(v):
-            resultado = cocienteIdealPrimo(resultado,x,d)
+            resultado = cocienteIdealPrimo(resultado,k,d)
             
     return resultado
 
@@ -552,11 +568,13 @@ def cocienteIdealPrimo(I,u,d):
     """
     # Calcula el cociente dependiendo del tipo de divisor que
     # tengamos. Puede ser:
+    #
     #  * un ideal principal generado por un primo. Con norma el
     #    cuadrado de un primo.
+    #
     #  * un ideal generado por un primo y un elemento e-a. Con norma
     #    prima.
-    
+    #
     assert( esprimo(u,d) )
     if not isprime(normaIdeal(u,d)):
         p = u[0]
