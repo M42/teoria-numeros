@@ -71,7 +71,7 @@ def simplificaIdeal(ideal, d):
     if len(reducida) < 2:
         return reducida
     
-    return [reducida[0][0] + reducida[0][1]*e(d), reducida[1][1]]
+    return [reducida[0][0] + reducida[0][1]*e(d), reducida[1][1]*e(d)]
 
 
 def normaIdeal(ideal, d):
@@ -157,6 +157,7 @@ def idealesDivisores(p,d):
         divisor = [p]
         return [divisor]
 
+
 def productodos(I,J,d):
     """Calcula el producto de dos ideales. Ambos se introducen como
     listas de generadores. Devuelve una lista con dos generadores.
@@ -229,7 +230,16 @@ def esprimo(ideal,d):
         * en otro caso, no es primo.
 
     """
-    return true
+    if isprime(normaIdeal(ideal,d)):
+        return True
+    else:
+        p = sqrt(normaIdeal(ideal,d))
+        if isprime(p):
+            irr = irr_e(d)
+            solucionesirr = [x for x in xrange(p) if irr(x)%p==0]
+            ramifica = (len(solucionesirr) != 0)
+            return not ramifica
+        return False
 
 
 def cocienteIdeal(I,J,d):
