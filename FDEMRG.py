@@ -274,6 +274,15 @@ def e(d):
     else:
         return sqrt(d)
 
+def irr_e(d):
+    if d % 4 == 1:
+        def irr(x):
+            return x**2 - x + (1-d)/4
+        return irr
+    else:
+        def irr(x):
+            return x**2 - d
+        return irr
 
 def irreducible_e(d):
     """
