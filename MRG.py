@@ -250,6 +250,8 @@ def factoriza(a,d):
     """Factoriza el elemento en el cuerpo O(d).
 
     """
+    assert( type(a) != list )
+    
     # Caso base: es una unidad
     if es_unidad(a,d):
         return {}
