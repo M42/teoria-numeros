@@ -89,3 +89,7 @@ for d in dpositivos:
 # Devuelve un generador de la ecuación.
 assert( eqpell(1,3) == (2,1) )
 assert( eqpell(1,5) == (9,4) )
+
+# idealesDivisores
+assert( idealesDivisores(3,3) == [[3,sqrt(3)]] )
+assert( idealesDivisores(5,3) == [[5]] )
