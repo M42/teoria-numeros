@@ -290,12 +290,22 @@ def factoriza(a,d):
 
 
 def e(d):
+    """Devuelve el e del anillo de enteros algebraicos. Según el caso
+    será uno de
+    
+      * 1/2 + 1/2 sqrt(d), cuando d%4 == 1.
+      * sqrt(d),           cuando d%4 != 1.
+
+    """
     if d % 4 == 1:
         return Rational(1,2)+Rational(1,2)*sqrt(d) 
     else:
         return sqrt(d)
 
 def irr_e(d):
+    """Devuelve el polinomio irreducible de e en los racionales.
+
+    """
     if d % 4 == 1:
         def irr(x):
             return x**2 - x + (1-d)/4
@@ -375,12 +385,15 @@ def simplificaIdeal(ideal, d):
     dos generadores.
     
     """
+    # Toma la matriz de relatores reducida
     reducida = LR(matrizrel(ideal,d))
     
-    # Caso particular de longitud 1 o 0.
+    # Caso particular de longitud 1 o 0. El ideal está ya simplificado
     if len(reducida) < 2:
         return reducida
-    
+
+    # Toma los dos primeros elementos de la matriz de relatores y
+    # los escribe como elementos del ideal.
     return [reducida[0][0] + reducida[0][1]*e(d), reducida[1][1]*e(d)]
 
 
@@ -478,7 +491,7 @@ def productodos(I,J,d):
     # Puede calcularse el producto de dos ideales uniéndolos y
     # obteniendo su matriz reducida. Los generadores serán los que
     # queden en esa matriz reducida.
-    return simplificaIdeal([i*j for i in I for j in J],d)
+    return simplificaIdeal([expand(i*j) for i in I for j in J],d)
 
 
 def producto(listaideales,d):
@@ -511,7 +524,11 @@ def factoriza_id(ideal, d):
           y seguimos trabajando con el cociente.
 
     """
-    assert(type(ideal) == list)
+    # Factoriza sólo ideales
+    assert( type(ideal) == list )
+    # No puede factorizar el ideal cero
+    assert( ideal != [] )
+    assert( normaIdeal(ideal,d) != 0 )
     
     # Caso base: es el ideal total
     if esO(ideal,d):
@@ -544,7 +561,9 @@ def esprimo(ideal,d):
         * en otro caso, no es primo.
 
     """
+    
     if isprime(normaIdeal(ideal,d)):
+        # Los ideales de norma prima son primos
         return True
     else:
         p = sqrt(normaIdeal(ideal,d))
@@ -588,7 +607,8 @@ def cocienteIdealPrimo(I,u,d):
     assert( divideIdeal(I,u,d) )
     
     if not isprime(normaIdeal(u,d)):
-        p = u[0]
+        # El primo que determina el ideal es la raíz de la norma
+        p = int(sqrt(normaIdeal(u,d)))
         return map(lambda i: i*Rational(1,p), I)
     else:
         p = normaIdeal(u,d)
