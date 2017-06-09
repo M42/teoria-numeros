@@ -284,7 +284,7 @@ def es_entero(a, d):
     """Devuelve si un número es entero algebraico en un cuerpo
     cuadrático. Comprueba que su norma y su traza lo sean.
     """
-    return ask(Q.integer(norma(a, d))) and ask(Q.integer(traza(a, d)))
+    return sympify(norma(a, d)).is_integer and sympify(traza(a, d)).is_integer
 
 
 def xy(a,d):
@@ -292,11 +292,9 @@ def xy(a,d):
     racional y coeficiente del radical.
     """
     # Elimina el caso entero, que da error al usar coeff.
+    a = expand(a)
     if sympify(a).is_integer:
         return (a,0)
-
-    # Simplifica el número, necesario para extraer los coeficientes
-    a = simplify(a)
     
     # Devuelve los coeficientes
     return (a.coeff(sqrt(d),0), a.coeff(sqrt(d)))
@@ -306,7 +304,6 @@ def ab(u,d):
     """Escribe las coordenadas de un entero algebraico en el cuerpo
     algebraico y en la base usual del cuerpo. La entrada debe ser un
     entero algebraico.
-
     """
     # Obtiene los coeficientes en parte radical y racional y los cambia
     # de base cuando es necesario, esto es, cuando d=1 mod 4.
