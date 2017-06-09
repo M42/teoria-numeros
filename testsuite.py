@@ -4,6 +4,7 @@
 from random import randint
 from sympy import *
 from FDEMRG import *
+from MRG import *
 
 # Enumera los d para los que el anillo cuadrático O(d) es
 # un dominio euclídeo.
@@ -72,10 +73,6 @@ assert( not es_unidad(sqrt(3),3) )
 assert( connorma(-3,-1) == [] )
 assert( connorma(-2,-1) == [] )
 assert( connorma(-7,-3) == [] )
-# Encuentra generadores para cada número.
-for d in dpositivos:
-    generadores = filter(lambda a: a != 1 and a != -1, connorma(1,d))
-    assert( generadores != [] )
 
 
 # pell
