@@ -158,7 +158,6 @@ def mpot(p, m):
     """Calcula el mayor exponente con el que p divide a m.
     La entrada debe ser un número positivo.
     """
-    
     exp = 0
     while (m % p == 0):
         exp = exp+1
