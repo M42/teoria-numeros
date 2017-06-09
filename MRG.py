@@ -274,7 +274,6 @@ def traza(a, d):
     """Devuelve la traza de un elemento de un cuerpo cuadrático.  La traza
     se define como la suma del elemento con su conjugado, es decir,
     como el doble de su parte racional.
-
     """
     x,y = xy(a,d)
     return simplify(2*x)
