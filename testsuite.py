@@ -73,6 +73,10 @@ assert( not es_unidad(sqrt(3),3) )
 assert( connorma(-3,-1) == [] )
 assert( connorma(-2,-1) == [] )
 assert( connorma(-7,-3) == [] )
+# En otros casos tampoco existe solución
+assert( connorma(2,-3) == [] )
+# En otros casos podemos comprobar la norma
+assert( all(map(lambda u: norma(u,-3) == 4, connorma(4,-3))) )
 
 
 # pell
@@ -90,3 +94,8 @@ assert( eqpell(1,5) == (9,4) )
 # idealesDivisores
 assert( idealesDivisores(3,3) == [[3,sqrt(3)]] )
 assert( idealesDivisores(5,3) == [[5]] )
+
+
+# Numero de clase
+assert( numeroClase(1239) == 8 )
+assert( numeroClase(1003) == 4 )
