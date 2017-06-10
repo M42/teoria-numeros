@@ -18,8 +18,9 @@ from sympy import *
 from PIL import Image
 from collections import Counter
 from itertools import *
+from backports.functools_lru_cache import lru_cache
 import numpy as np
-
+import math
 
 
 
@@ -379,18 +380,44 @@ def generalpell(n,d):
         cotasup = sqrt(Rational(-n*(r+1), 2*d))
     
     # Encuentra las soluciones de la ecuación de Pell.
-    solucionespotenciales = ((sqrt(n+d*y**2), y) for y in xrange(cotainf,cotasup+1))
-    soluciones = [
+    solucionespotenciales = ((n+d*y**2, y) for y in xrange(cotainf,cotasup+1))
+    soluciones = (
         [(x,y),(x,-y),(-x,y),(-x,-y)]
-        for (x,y) in solucionespotenciales if ask(Q.integer(x))
-    ]
+        for (x,y) in ((sqrt(x),y) for (x,y) in solucionespotenciales if esCuadrado(x))
+    )
     
     return list(set([s for sol in soluciones for s in sol]))
 
 
+cuadrados = set([0,1,4,9,16,25,36,49,64,81,100,121,144,169,196,
+ 225,256,289,324,361,400,441,484,529,576,625,676,
+ 729,784,841,900,961,1024,1089,1156,1225,1296,1369,
+ 1444,1521,1600,1681,1764,1849,1936,2025,2116,2209,
+ 2304,2401,2500])
+
+def esCuadrado(n):
+    """Devuelve si un entero es un cuadrado perfecto."""
+    # Los únicos cuadrados en módulo 16 terminan en 0,1,4,9. Así,
+    # podemos filtrar unos cuantos números al empezar.
+    # n = int(n)
+    hx = n & 0xF
+    if (hx > 9): return False
+    if (hx!=2 and hx!=3 and hx!=5 and hx!=6 and hx!=7 and hx!=8):
+        if n in cuadrados:
+            return True
+        if n < 2500:
+            return False
+        
+        t = math.floor(math.sqrt(n) + 0.5)
+        return t*t == n
+        
+    return False
+
 def eqpell_neg(n,d):
     """Resuelve la ecuación de Pell para d<0.
     """
+    n = int(n)
+    
     # Si n es negativo, como d también lo es, no puede existir
     # solución a la ecuación
     if n < 0:
@@ -404,8 +431,11 @@ def eqpell_neg(n,d):
     # Prueba todos los valores posibles de y, sabiendo que siempre
     # quedará por debajo de la cota y < sqrt(n/-d).
     cota = int(sqrt(n/-d))+1
-    solucionespotenciales = ((sqrt(n+d*y**2), y) for y in xrange(cota))
-    soluciones = [[(x,y),(x,-y),(-x,y),(-x,-y)] for (x,y) in solucionespotenciales if ask(Q.integer(x))]
+    solucionespotenciales = ((n+d*y**2, y) for y in xrange(cota))
+    soluciones = (
+        [(x,y),(x,-y),(-x,y),(-x,-y)]
+        for (x,y) in ( (sqrt(x),y) for (x,y) in solucionespotenciales if esCuadrado(x) )
+    )
 
     # Devolvemos las soluciones sin repetición
     return list(set([s for sol in soluciones for s in sol]))
@@ -415,6 +445,7 @@ def eqpell(n,d):
     """Resuelve la ecuación de Pell. En el caso de que d sea positivo sólo
     devolverá las soluciones generadoras.
     """
+    n = int(n)
     if n == 1 and d > 0:
         return pell(d)
     
@@ -423,7 +454,7 @@ def eqpell(n,d):
     else:
         return generalpell(n,d)
 
-
+@lru_cache(maxsize=5)
 def connorma(n,d):
     """Calcula los elementos de O_{d} con norma n.
     """
@@ -436,8 +467,7 @@ def connorma(n,d):
         # Caso 2: resolvemos la ecucación de Pell
         # teniendo en cuenta la forma de los números
         soluciones = eqpell(4*n,d)
-        return [(Rational(x,2)+Rational(y,2)*sqrt(d)) for (x,y) in soluciones if (x-y) % 2 == 0]
-
+        return [Rational(x,2)+Rational(y,2)*sqrt(d) for (x,y) in soluciones if (x-y) % 2 == 0]
     
 def es_unidad(a,d):
     """Devuelve si a es una unidad en el anillo de enteros Q(sqrt(d)).
@@ -1051,6 +1081,7 @@ def retiraFilasDeCeros(matriz):
 def reduceRelaciones(matriz):
     """Reduce una matriz de relaciones por filas."""
     n = len(matriz)
+    if n == 0: return matriz
     m = len(matriz[0])
     
     for step in range(m):
@@ -1092,11 +1123,10 @@ def numeroClase(d):
     
     # Refina la lista de generadores
     lista = refinaGeneradores(ideales,d)
-    ordenes = ordenLista(lista,d)
     print "Refinamos la lista de generadores retirando los inversos y nos quedamos con",lista,"\n\n"
 
-    
     # Crea la matriz con el orden
+    ordenes = ordenLista(lista,d)
     matriz = matrizRelacionesOrden(ordenes)
     print "El orden de los elementos nos da la siguiente matriz de relaciones"
     print np.matrix(matriz)
@@ -1111,8 +1141,9 @@ def numeroClase(d):
 
     # Calcula el número de clase
     clase = 1
-    for i in xrange(len(final[0])):
-        clase = clase * abs(final[i][i])
+    if len(final)>0:
+        for i in xrange(len(final[0])):
+            clase = clase * abs(final[i][i])
 
     print "El número de clase es ",clase
     return clase
