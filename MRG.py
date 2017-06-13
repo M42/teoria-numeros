@@ -37,7 +37,12 @@ import math
 #
 # para cualquier a coprimo con n. La asimetría se basa en que calcular
 # el phi(n) es computacionalmente difícil cuando no se conoce la
-# factorización del número.
+# factorización del número. Cuando se conoce la factorización, puede
+# calcularse simplemente como
+#
+#  phi(n) = \prod p_1^{e_1-1}(p_1-i),
+#
+# donde la factorización de n es \prod p_i^{e_i}.
 def rsa(x,n,e):
     """Dada una entrada, módulo y exponente, codifica usando RSA."""
     return pow(x,e,n)
@@ -52,7 +57,12 @@ def rsaDec(y,n,phi,e):
     # el módulo de u en phi gracias al teorema de Euler.
     return pow(y,long(u)%phi,n)
 
+
 ## Codificación afín de imágenes.
+# La codificación afín aplica una transformación de la forma
+#  x |-> ax + b
+# a todos los datos. Constituye un cifrado simétrico.
+#
 # Codifica afínmente una imagen, con una transformación afín del tipo
 # siguiente y tomando módulo 256, para tres canales:
 #
@@ -99,12 +109,17 @@ def afinimgDec(image, t, r, g, b):
 
 
 ## Codificación de Vigenère
-# La codificación de Vigenère es una codificación simétrica que utiliza
-# una matriz como clave.
-
-# Importa el paquete itertools para trabajar con herramientas de la
-# programación funcional, que facilitan el tratamiento de listas.
-from itertools import cycle
+# La codificación de Vigenère es una codificación simétrica que
+# utiliza una matriz como clave. Dada esa matriz, simplemente busca la
+# fila y columna determinadas por la letra a codificar y la clave que
+# le corresponde y usa la letra en esa entrada como
+# sustituta. Normalmente se repite la clave tantas veces como sea
+# necesario, como en
+#
+#  MENSAJECIFRADO
+#  CLAVECLAVECLAV,
+#
+# la inversa se calcula trivialmente.
 
 def vigenere(mensaje, matriz, clave):    
     """Codifica un mensaje con la codificación de Vigenère usando la
@@ -155,6 +170,10 @@ def vigenereDec(mensajecodificado, matriz, clave):
 ##
 # PRÁCTICA 2. Factorización y pseudoprimalidad
 ##
+# Primalidad: un elemento a es primo si a|bc implica a|b o a|c.
+# Irreducibilidad: un elemento a es irreducible si b|a implica b~a ó b~1.
+#
+# En todo DFU coinciden primalidad e irreducibilidad.
 
 def mpot(p, m):
     """Calcula el mayor exponente con el que p divide a m.
@@ -236,6 +255,324 @@ def primerosNPrimos(n):
     return [prime(i) for i in xrange(1,n)]
 
 
+## Test 1: Primalidad
+# Pseudoprimalidad
+# Comprueba que n es pseudoprimo en base b
+def isPsp(n,b):
+    return gcd(b,n) == 1 and pow(b,n-1,n) == 1
+
+# Test simple utilizando una sola base aleatoria
+def pspTest(n):    
+    # Elige una base aleatoria
+    b = random.randint(2,n-1)
+    if not isPsp(n,b):
+        return b, False
+    return b, True
+
+# Test de pseudoprimalidad completo
+def psp(n,k=1):
+    # Prueba el test de primalidad simple sobre un conjunto de k bases
+    # elegidas aleatoriamente.
+    bases = []
+    for _ in xrange(k):
+        # Si alguna falla, sabemos inmediatamente que no es primo.
+        b,result = pspTest(n)
+        if result == False: return (b,False)
+        bases.append(b)
+    
+    # Si todas las bases pasan el test, es posible que sea primo.
+    print "Es posible que {} sea primo".format(n)
+    return bases,True
+
+
+## Test 2: Pseudoprimalidad de Euler
+# Símbolo de Jacobi.
+# El símbolo de Jacobi se define como:
+# 
+# jacobi(a,n) = \prod legendre(a,p_i)^{\alpha_i},
+# 
+# donde los p_i dan la factorización de n y donde legendre representa
+# el símbolo de Legendre, siendo legendre(a,p)
+#
+#  * 0 cuando a = 0 mod p.
+#  * 1 cuando a es residuo cuadrático mod p.
+#  * -1 cuando a no es residuo cuadrático mod p.
+#
+# El cálculo del símbolo de Jacobi lo realizamos sabiendo las siguientes
+# propiedades
+#
+#  * jacobi(m,n) * jacobi(n,m) = (-1)^{(m-1)/2 * (n-1)/2}
+#  * jacobi(m,n) = jacobi(m+kn,n)
+#  * jacobi(2,n) = (-1)^{(n^2-1)/8}
+#  * jacobi(1,n) = 1
+#
+# y usando recursión.
+def jacobiSym(m,n):
+    """Calcula el símbolo de Jacobi de dos enteros. El segundo de ellos
+    no debe ser par."""
+    
+    # Trabaja en módulo n
+    m = m % n
+    
+    # Caso base, no son coprimos
+    if gcd(m,n) != 1:
+        return 0
+    
+    # Caso base, 1 es un residuo cuadrático 
+    if m == 1:
+        return 1
+    
+    # Caso recursivo, m divisible entre 2
+    if m % 2 == 0:
+        return pow(-1, (n**2-1)/8) * jacobiSym(m/2, n)
+    
+    # Caso recursivo, ley de reciprocidad cuadrática
+    return pow(-1, ((m-1)*(n-1))/4) * jacobiSym(n,m)
+
+# Pseudoprimalidad de Euler
+# Definición de pseudoprimos de Euler.
+def isEpsp(n,b):
+    """Comprueba la pseudoprimalidad de Euler de un
+    número en una base dada.
+    """
+    
+    # Comprueba coprimalidad
+    if gcd(b,n) != 1:
+        print "{} es divisor de {}".format(gcd(b,n), n)
+        return False
+    
+    # Test de Euler
+    return pow(b,(n-1)/2,n) == jacobi_symbol(b,n)
+
+
+# Test simple de pseudoprimalidad con una base aleatoria
+# sólo para números impares.
+def epspSimpleTest(n):
+    """Prueba la pseudoprimalidad de Euler de un número en
+    una base aleatoria. Devuelve el número y si ha funcionado
+    el test.
+    """
+    
+    # Elige una base aleatoria
+    b = random.randint(2,n-1)
+    if not isEpsp(n,b):
+        return b, False
+
+    return b, True
+
+# Test de pseudoprimalidad de Euler
+def epsp(n,k=1):
+    """Prueba el test de pseudoprimalidad de Euler con k bases
+    distintas aleatorias.
+    """
+    # Eliminamos el caso de un número par
+    if n % 2 == 0:
+        print "{} es par".format(n)
+        return 2,False
+    
+    # Prueba el test de primalidad simple sobre un conjunto de k bases
+    # elegidas aleatoriamente.
+    bases = []
+    for _ in xrange(k):
+        
+        # Si alguna falla, sabemos inmediatamente que no es primo.
+        b, isepsp = epspSimpleTest(n)
+        if not isepsp: return (b,False)
+        bases.append(b)
+    
+    # Si todas las bases pasan el test, es posible que sea primo.
+    print "Es posible que {} sea primo".format(n)
+    return bases,True
+
+
+## Test 3: fuertemente pseudoprimos.
+# Un número n es fuertemente pseudoprimo respecto de b si
+#
+#  * n es impar,
+#  * gcd(b,n) = 1, y
+#  * n = 2^st nos da b^t=1, o b^{t2^i} = -1 mod n.
+#
+# Test para fuertemente pseudoprimos.
+def fpsp(n, k=1):
+    
+    # Comprueba el test de primalidad para una base y una división
+    # de n en partes par e impar dadas
+    def fpspTest(n,b,s,t):
+        # Comprueba coprimalidad
+        if gcd(b,n) != 1:
+            print "{} es divisor de {}".format(gcd(b,n),n)
+            return b, False
+
+        # Comprueba la primera condición de pseudoprimalidad de Euler
+        powb = pow(b,t,n)
+        if powb == 1 or powb == -1: return b, True
+
+        # Comprueba la segunda condición de pseudoprimalidad de Euler
+        for i in xrange(1,s):
+            if pow(b, t*2**i, n) == n-1:
+                return b, True
+            if pow(b, t*2**i, n) == 1:
+                return b, False
+        
+        # Si falla la comprobación
+        return b, False
+    
+    # Caso unidad
+    if n == 1: return 1, False
+    
+    # Caso par
+    if n % 2 == 0:
+        print "{} es par".format(n)
+        return 2,n == 2
+    
+    # Descompone al número en parte par e impar
+    s = mpot(2, n-1)
+    t = (n-1)/s
+    
+    # Elige una base al azar para cada paso
+    bases = []
+    for _ in xrange(k):
+        b = randint(2,n-1)
+        bases.append(b)
+        b, test = fpspTest(n,b,s,t)
+        if not test: return b, False
+    
+    # En caso de que haya pasado todos los tests
+    return bases, True
+
+## Factor-Base
+# Elige una lista de B-números con la esperanza de que sean suficientes
+# para resolver x^2 = y^2 mod n.
+def bi(n,k,i,base):
+    """Elige una lista de B-números dados índices sobre los que buscar
+    y una base.
+    """
+    # Crea las listas
+    lista1 = [int(math.floor(math.sqrt(i*n))) for i in xrange(1,k+1)]
+    lista2 = [m+i for i in xrange(i) for m in lista1]
+    
+    # Selecciona los B-números
+    return filter(lambda b: bnumer(b, base, n), lista2)
+
+# Resolución de la ecuación x^2 = y^2 mod n.
+def soleqBase(n, base, bnumeros, k, i):
+    # Calcula alfa vectores de los B-números dados.
+    alfavectores = map(lambda b: vec_alfa(b,base,n), bnumeros)
+    
+    # Busca en el conjunto potencia de los B-números. Para cada subconjunto,
+    # calcula sus alfa-vectores y comprueba si suman un exponente par.
+    # Para las pares, intenta encontrar una solución no trivial.
+    powerset = chain.from_iterable(
+        combinations(range(len(alfavectores)), a)
+        for a in range(len(alfavectores)+1)
+    )
+    
+    for tupla in powerset:
+        if tupla != ():
+            suma = reduce(lambda x,y: ssuma(x,y),map(lambda x: alfavectores[x], tupla))
+            if parp(suma):
+                # Calcula la solución, comprueba que no es trivial
+                t = reduce(lambda x,y: (x*y)%n, map(lambda x: bnumeros[x], tupla))
+                s = reduce(lambda x,y: (x*y)%n, map(lambda (p,e): pow(p,(e/2),n), zip(base, suma)))
+                if t != s and t != (-s)%n:
+                    return t%n,s%n
+
+def soleq(n, h, k, i):
+    # Escoge una base y crea B-números en esa base.
+    base = [-1] + primerosNPrimos(h)
+    bnumeros = bi(n,k,i,base)
+    return soleqBase(n, base, bnumeros, k, i)
+
+## Factorización usando la resolución de Factor-Base.
+def fac(n,h,k=5,i=5):
+    factorization = {}
+    
+    # Caso unidad
+    if n == 1:
+        return {}
+    
+    # Caso de potencias de 2 y números pares
+    if mpot(2,n) != 0:
+        factorization[2] = mpot(2,n)
+        return factorization
+    
+    # Caso primo
+    if isprime(int(n)):
+        factorization[n] = 1
+        return factorization
+    
+    # Caso compuesto
+    a,b = soleq(int(n),h,k,i)
+    u,v = gcd(a+b, n), n/gcd(a+b, n)
+    factorization = dict(Counter(fac(u,h,k,i))+Counter(fac(v,h,k,i)))
+    
+    return factorization
+
+def soleqfc(n,s):
+    # Cálculo de las fracciones continuas y numeradores
+    f = continued_fraction_periodic(0,1,n)
+    l1 = [f[0]]+f[1] if len(f)>1 else [f[0]]
+    l2 = continued_fraction_convergents(l1[:s])
+    pbs = [fraction(x)[0] for x in l2]
+    
+    # Factorización de los cuadrados en módulo absoluto
+    factorizaciones = [factorint(abmod(b**2,n)) for b in pbs]
+    
+    # Base factor
+    # Primera condición, aparecen para al menos dos b's
+    from collections import Counter
+    counter = Counter(flatten(map(lambda d: d.keys(), factorizaciones)))
+    baseFactor = [k for k,v in counter.iteritems() if v > 1]
+    counter2 = flatten([[k for k,v in d.iteritems() if v%2 == 0] for d in factorizaciones])
+    counter2 = [k for k,v in Counter(counter2).items() if v==1]
+    baseFactor = baseFactor + counter2
+    baseFactor
+    
+    # Calcula los B-números
+    bumerosObtenidos = filter(lambda x: bnumer(x,baseFactor,n), pbs)
+    
+    return soleqBase(n, baseFactor, bumerosObtenidos, 1, 1)
+
+def facfc(n, s=145):
+    factorization = {}
+    
+    if n == 1:
+        return {}
+    
+    # Caso cuadrado perfecto
+    # Para este caso no encuentra solución el algoritmo anterior
+    sqrtn = int(sqrt(n))
+    if sqrtn != 1 and n % sqrtn == 0:
+        return dict(Counter(facfc(sqrtn))+Counter(facfc(sqrtn)))
+                    
+    # Caso de potencias de 2 y números pares
+    if mpot(2,n) != 0:
+        factorization[2] = mpot(2,n)
+        return factorization
+    
+    # Caso primo
+    if isaPrime(int(n)):
+        factorization[n] = 1
+        return factorization
+    
+    # Caso compuesto
+    a,b = soleqfc(int(n),s)
+    u,v = gcd(a+b, n), n/gcd(a+b, n)
+        
+    factorization = dict(Counter(facfc(u))+Counter(facfc(v)))
+    
+    return factorization
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -250,7 +587,27 @@ def primerosNPrimos(n):
 ##
 # PRÁCTICA 3. Factorización en dominios euclídeos
 ##
-
+# Llamamos cuerpos de números a una extensión de Q que sea finita.
+# Toda extensión de Q finita tiene un elemento primitivo; en particular
+# toda extensión cuadrática es de la forma Q(sqrt(d)) para algún d libre
+# de cuadrados.
+#
+# En estos cuerpos de números, llamamos enteros algebraicos a aquellos
+# números que son raíz de un mónico con coeficientes en Z.
+#
+#  1. a es entero algebraico ssi Irr(a) tiene coeficientes en Z.
+#  2. a entero algebraico si N(a),T(a) son enteros.
+#  3. un racional es entero algebraico ssi es entero.
+#  4. sumas y productos de enteros algebraicos son enteros algebraicos.
+#  5. los enteros algebraicos forman un anillo.
+#  6. para cualquier elemento a existe un n tal que na es entero algebraico.
+#  7. todo cuerpo de números está generado con un entero algebraico.
+#  8. los enteros algebraicos son un grupo abeliano finitamente generado.
+#
+# El anillo de enteros algebraicos es Dominio Euclídeo para
+#   d = -1,-2,-3,-7,-11,
+# y es un Dominio de Factorización Única para
+#   d = -19,-43,-67,-163.
 
 def libreDeCuadrados(n):
     """Devuelve si el número entero dado es libre de cuadrados. Espera un
@@ -265,7 +622,8 @@ def libreDeCuadrados(n):
 def norma(a, d):
     """Devuelve la norma de un elemento de un cuerpo cuadrático. Toma como
     entrada el elemento del cuerpo cuadrático y la d que define el
-    cuerpo cuadrático O(d). Devuelve un natural en la salida.
+    cuerpo cuadrático O(d). Devuelve un natural en la salida para los
+    enteros algebraicos.
     """
     x,y = xy(a,d)
     return simplify((x + y*sqrt(d)) * (x - y*sqrt(d)))
@@ -866,6 +1224,13 @@ def cocienteIdealPrimo(I,u,d):
 
 
 
+
+
+
+
+
+
+
 ##
 # PRÁCTICA 5. Número de clase
 ##
@@ -920,7 +1285,7 @@ def idealesGeneradores(d):
     """
     return map(lambda p: idealesDivisores(p,d)[0],
                primosqueramificanbajolacota(d))
-    
+
 
 def esPrinc(ideal,d):
     """Determina si el ideal dado es principal."""
@@ -950,7 +1315,7 @@ def quitaInversos(lista,d):
         i = i+1
     return lista
 
-def quitaRelacionesTriviales(lista,d,n=2):
+def quitaRelacionesTriviales(lista,d,n=2,debug=False):
     """Quita los generadores innecesarios de la lista de
     generadores. Un generador innecesario es aquel que puede
     escribirse como combinación de los demás. Esto es, aquel
@@ -966,7 +1331,9 @@ def quitaRelacionesTriviales(lista,d,n=2):
             relacionposible.insert(j,1)
 
             if esPrinc(calculaRelacion(relacionposible,lista,d),d):
-                print "Relación encontrada",relacionposible,"retirado el",j,"ésimo generador"
+                if debug:
+                    print "Relación encontrada",relacionposible,"retirado el",j,"ésimo generador"
+                    
                 del lista[j]
                 break
         
@@ -1013,6 +1380,7 @@ def calculaRelacion(rel, generadores, d):
     """Calcula el resultado de multiplicar una relación con los
     generadores dados."""
     resultado = [1]
+    
     for i in xrange(len(rel)):
         for _ in xrange(rel[i]):
             resultado = productodos(resultado, generadores[i], d)
@@ -1032,9 +1400,8 @@ def esNuevaRelacion(rel, matriz, generadores, d):
     
     return False
 
-
 def sumasposibles(r, n, t, acc=[]):
-    """Calcula las formas posibles de sumar t con n términos de la
+    """Calcula las formas posibles de sumar n con t términos de la
     lista r."""
     if t == 0:
         if n == 0:
@@ -1047,7 +1414,7 @@ def sumasposibles(r, n, t, acc=[]):
             yield lst
 
 
-def encuentraRelaciones(matriz, generadores, d):
+def encuentraRelaciones(matriz, generadores, d, debug=False):
     """Busca las relaciones que pueden encontrarse con estos generadores,
     conociendo las que ya existen en la matriz."""
     t = len(generadores)
@@ -1055,7 +1422,9 @@ def encuentraRelaciones(matriz, generadores, d):
     alguncaso = True
     
     while alguncaso:
-        print "Buscando relaciones con n =",n
+        if debug:
+            print "Buscando relaciones con n =",n
+        
         alguncaso = False
         for suma in sumasposibles(range(n+1),n,t):
             if esNuevaRelacion(suma, matriz, generadores, d):
@@ -1105,7 +1474,7 @@ def reduceRelaciones(matriz):
 
 
 
-def numeroClase(d):
+def numeroClase(d, debug=True):
     # Comprueba que el número sea libre de cuadrados.
     assert( libreDeCuadrados(d) )
 
@@ -1113,31 +1482,37 @@ def numeroClase(d):
     cotaminkowski = minkowski(d)
     listaprimos = primosqueramificanbajolacota(d)
     ideales = idealesGeneradores(d)
-    
-    print "La cota de Minkowski para",d,"es",cotaminkowski
-    print "Los primos que ramifican por debajo de esa cota son:"
-    print listaprimos,"\n\n"
-    print "Tenemos los ideales generadores"
-    print ideales
 
+    if debug:
+        print "La cota de Minkowski para",d,"es",cotaminkowski
+        print "Los primos que ramifican por debajo de esa cota son:"
+        print listaprimos,"\n\n"
+        print "Tenemos los ideales generadores"
+        print ideales
     
     # Refina la lista de generadores
     lista = refinaGeneradores(ideales,d)
-    print "Refinamos la lista de generadores retirando los inversos y nos quedamos con",lista,"\n\n"
+    
+    if debug:
+        print "Refinamos la lista de generadores retirando los inversos y nos quedamos con",lista,"\n\n"
 
     # Crea la matriz con el orden
     ordenes = ordenLista(lista,d)
     matriz = matrizRelacionesOrden(ordenes)
-    print "El orden de los elementos nos da la siguiente matriz de relaciones"
-    print np.matrix(matriz)
+
+    if debug:
+        print "El orden de los elementos nos da la siguiente matriz de relaciones"
+        print np.matrix(matriz)
 
     # Busca más relaciones
-    nuevamatriz = encuentraRelaciones(matriz,lista,d)
+    nuevamatriz = encuentraRelaciones(matriz,lista,d,debug=debug)
 
     # Reduce por filas la matriz hasta obtener los factores fundamentales
     final = reduceRelaciones(nuevamatriz)
-    print "La matriz reducida es"
-    print np.matrix(final)
+
+    if debug:
+        print "La matriz reducida es"
+        print np.matrix(final)
 
     # Calcula el número de clase
     clase = 1
@@ -1145,5 +1520,7 @@ def numeroClase(d):
         for i in xrange(len(final[0])):
             clase = clase * abs(final[i][i])
 
-    print "El número de clase es ",clase
+    if debug:
+        print "El número de clase es ",clase
+        
     return clase
