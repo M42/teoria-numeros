@@ -1254,7 +1254,7 @@ def minkowski(d):
         t = 1
     n = s + 2*t
     
-    cota = (4/float(pi))**t * factorial(n)/(n**n) * sqrt(discriminante(d))
+    cota = (4/float(pi))**t * factorial(n)/(n**n) * sqrt(abs(discriminante(d)))
     return float(cota)
 
 
@@ -1477,7 +1477,7 @@ def reduceRelaciones(matriz):
 
 
 
-def numeroClase(d, debug=True):
+def numeroClase(d, debug=True, profundidad=3):
     # Comprueba que el número sea libre de cuadrados.
     assert( libreDeCuadrados(d) )
 
@@ -1510,6 +1510,9 @@ def numeroClase(d, debug=True):
     # Busca más relaciones
     nuevamatriz = encuentraRelaciones(matriz,lista,d,debug=debug)
 
+    for p in xrange(3,profundidad):
+        nuevamatriz = encuentraRelaciones(nuevamatriz,lista,d,debug=debug,n=p)
+    
     # Reduce por filas la matriz hasta obtener los factores fundamentales
     final = reduceRelaciones(nuevamatriz)
 
