@@ -744,7 +744,7 @@ def generalpell(n,d):
         for (x,y) in ((sqrt(x),y) for (x,y) in solucionespotenciales if esCuadrado(x))
     )
     
-    return list(set([s for sol in soluciones for s in sol]))
+    return (s for sol in soluciones for s in sol)
 
 
 cuadrados = set([0,1,4,9,16,25,36,49,64,81,100,121,144,169,196,
@@ -819,13 +819,13 @@ def connorma(n,d):
     if d % 4 != 1:
         # Caso 1: resolvemos la ecuación de Pell
         solucionespell = eqpell(n,d)
-        return [x + y*sqrt(d) for (x,y) in solucionespell]
+        return (x + y*sqrt(d) for (x,y) in solucionespell)
     
     else:
         # Caso 2: resolvemos la ecucación de Pell
         # teniendo en cuenta la forma de los números
         soluciones = eqpell(4*n,d)
-        return [Rational(x,2)+Rational(y,2)*sqrt(d) for (x,y) in soluciones if (x-y) % 2 == 0]
+        return (Rational(x,2)+Rational(y,2)*sqrt(d) for (x,y) in soluciones if (x-y) % 2 == 0)
     
 def es_unidad(a,d):
     """Devuelve si a es una unidad en el anillo de enteros Q(sqrt(d)).
@@ -858,7 +858,7 @@ def es_irreducible(a,d):
     # comprobar si ramifica buscando soluciones.
     raiz = sqrt(n)
     if ask(Q.integer(raiz)) and isprime(raiz):
-        return len(connorma(raiz,d) + connorma(-raiz,d)) == 0
+        return len(list(connorma(raiz,d)) + list(connorma(-raiz,d))) == 0
     
     return False
 
@@ -880,15 +880,14 @@ def factoriza(a,d):
     
     # Si no existen elementos de norma dada, prueba
     # con el entero primo de esa norma.
-    connormadada = connorma(factor, d) + connorma(-factor,d)
-    if len(connormadada) != 0:
-        # Pero si existen elementos de norma dada, prueba con 
-        # el primero de ellos que lo divida.
-        for factorpotencial in connormadada:
-            factorpotencial = simplify(factorpotencial)
-            if divide(a, factorpotencial, d):
-                factor = factorpotencial
-                break
+    connormadada = chain(connorma(factor, d), connorma(-factor,d))
+    # Pero si existen elementos de norma dada, prueba con 
+    # el primero de ellos que lo divida.
+    for factorpotencial in connormadada:
+        factorpotencial = simplify(factorpotencial)
+        if divide(a, factorpotencial, d):
+            factor = factorpotencial
+            break
         
     # Factoriza recursivamente
     dividido = simplify(cociente(a,factor,d))
@@ -1290,8 +1289,8 @@ def idealesGeneradores(d):
 def esPrinc(ideal,d):
     """Determina si el ideal dado es principal."""
     n = normaIdeal(ideal,d)
-    l = connorma(n,d) + connorma(-n,d)
-    return any([pertenece(u,ideal,d) for u in l])
+    l = chain(connorma(n,d), connorma(-n,d))
+    return any(pertenece(u,ideal,d) for u in l)
 
 def quitaTriviales(lista,d):
     """Quita los ideales triviales de una lista de generadores;
@@ -1400,25 +1399,29 @@ def esNuevaRelacion(rel, matriz, generadores, d):
     
     return False
 
-def sumasposibles(r, n, t, acc=[]):
+def sumasposibles(r,n,t):
+    """Calcula las formas posibles de sumar n con t términos de la
+    lista r."""
+    return filter(lambda l: sum(l)==n, map(list,product(r,repeat=t)))
+
+def sumasposibles2(r, n, t):
     """Calcula las formas posibles de sumar n con t términos de la
     lista r."""
     if t == 0:
         if n == 0:
-            yield acc
-        return
+            return [[]]
+        return []
     for x in r:
         if x > n:
             break
-        for lst in sumasposibles(r, n-x, t-1, acc + [x]):
-            yield lst
+        [suma + [x] for suma in sumasposibles2(r, n-x, t-1)]
 
 
-def encuentraRelaciones(matriz, generadores, d, debug=False):
+
+def encuentraRelaciones(matriz, generadores, d, debug=False, n=3):
     """Busca las relaciones que pueden encontrarse con estos generadores,
     conociendo las que ya existen en la matriz."""
     t = len(generadores)
-    n = 3
     alguncaso = True
     
     while alguncaso:
