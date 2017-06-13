@@ -79,11 +79,11 @@ assert( not es_unidad(sqrt(3),3) )
 
 # connorma
 # En cuerpos sobre negativos, no podemos encontrar norma negativa.
-assert( connorma(-3,-1) == [] )
-assert( connorma(-2,-1) == [] )
-assert( connorma(-7,-3) == [] )
+assert( list(connorma(-3,-1)) == [] )
+assert( list(connorma(-2,-1)) == [] )
+assert( list(connorma(-7,-3)) == [] )
 # En otros casos tampoco existe solución
-assert( connorma(2,-3) == [] )
+assert( list(connorma(2,-3)) == [] )
 # En otros casos podemos comprobar la norma
 assert( all(map(lambda u: norma(u,-3) == 4, connorma(4,-3))) )
 
