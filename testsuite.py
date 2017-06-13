@@ -2,9 +2,18 @@
 # -*- encoding: utf-8 -*-
 
 from random import randint
-from sympy import *
-from FDEMRG import *
 from MRG import *
+
+# RSA
+assert(
+    rsaDec(
+        862987092548752514737921262586293739762725407,
+        1000000000000000000390001300000000000000000507,
+        (10000000000000000000000013-1)*(100000000000000000039-1),
+        12343) ==
+    699132868
+)
+
 
 # Enumera los d para los que el anillo cuadrático O(d) es
 # un dominio euclídeo.
