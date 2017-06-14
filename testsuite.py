@@ -106,5 +106,6 @@ assert( idealesDivisores(5,3) == [[5]] )
 
 
 # Numero de clase
-assert( numeroClase(1239) == 8 )
-assert( numeroClase(1003) == 4 )
+assert( numeroClase(1239,debug=False) == 8 )
+assert( numeroClase(1003,debug=False) == 4 )
+assert( numeroClase(226,debug=False,profundidad=6) == 8) 
