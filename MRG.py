@@ -812,7 +812,6 @@ def eqpell(n,d):
     else:
         return generalpell(n,d)
 
-@lru_cache(maxsize=5)
 def connorma(n,d):
     """Calcula los elementos de O_{d} con norma n.
     """
