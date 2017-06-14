@@ -1025,7 +1025,7 @@ def esO(ideal, d):
     """
     # Un ideal es de enteros sólo si todos sus generadores lo son.
     # Un ideal de enteros es el total si y sólo si tiene norma 1.
-    return all([es_entero(e,d) for e in ideal]) and normaIdeal(ideal, d) == 1 
+    return all(es_entero(e,d) for e in ideal) and normaIdeal(ideal, d) == 1 
 
 
 def pertenece(u, ideal, d):
@@ -1434,7 +1434,8 @@ def encuentraRelaciones(matriz, generadores, d, debug=False, n=3):
                 # Si encuentra una nueva relación, la añade a la matriz de
                 # relaciones conocidas, simplifica y sigue buscando.
                 matriz = [suma] + matriz
-                print suma
+                if debug:
+                    print suma
                 alguncaso = True
         n = n+1
     
